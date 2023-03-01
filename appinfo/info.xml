@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<info xmlns:xsi= "http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="https://apps.nextcloud.com/schema/apps/info.xsd">
+    <!--
+    SPDX-FileCopyrightText: Martin Nohava <martin.nohava@vut.cz>
+    SPDX-License-Identifier: CC0-1.0
+    -->
+    <id>archive</id>
+    <name>Archive</name>
+    <summary>Nextcloud application for long-term data archiving</summary>
+    <description><![CDATA[Nextcloud application for long-term data archiving]]></description>
+    <version>0.0.1</version>
+    <licence>agpl</licence>
+    <author mail="martin.nohava@vut.cz" homepage="https://vut.cz">Martin Nohava</author>
+    <namespace>Archive</namespace>
+    <category>tools</category>
+    <bugs>https://github.com/martin-nohava/archive</bugs>
+    <dependencies>
+        <nextcloud min-version="25" max-version="25"/>
+    </dependencies>
+    <navigations>
+        <navigation>
+            <name>Archive</name>
+            <route>archive.page.index</route>
+        </navigation>
+    </navigations>
+</info>
