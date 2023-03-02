@@ -19,10 +19,12 @@
         <nextcloud min-version="21" max-version="25"/>
     </dependencies>
     <navigations>
+        <!-- 
         <navigation>
             <name>Archive</name>
             <route>archive.page.index</route>
         </navigation>
+        -->
     </navigations>
     <settings>
         <!-- Calls lib/Settings/Admin.php -->
