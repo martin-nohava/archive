@@ -1,0 +1,2 @@
+OCA.Files.fileActions.registerAction({name:"moveFileToTheArchive",displayName:t("archive","Move file to the archive"),mime:"file",permissions:OC.PERMISSION_READ,iconClass:"icon-category-app-bundles",actionHandler:function(e,i){OC.dialogs.info('The file "'+e+'" with a size of '+i.fileInfoModel.attributes.size,"Move file to the archive")}});
+//# sourceMappingURL=archive-filesplugin.js.map
