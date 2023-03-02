@@ -24,4 +24,9 @@
             <route>archive.page.index</route>
         </navigation>
     </navigations>
+    <settings>
+        <!-- Calls lib/Settings/Admin.php -->
+        <admin>OCA\Archive\Settings\Admin</admin>
+        <admin-section>OCA\Archive\Settings\AdminSection</admin-section>
+    </settings>
 </info>

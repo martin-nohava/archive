@@ -21,8 +21,9 @@ class PageController extends Controller {
 	 * @NoCSRFRequired
 	 */
 	public function index(): TemplateResponse {
-		Util::addScript(Application::APP_ID, 'archive-main');
-
+		/* Load minified front-end script from js/ */
+        Util::addScript(Application::APP_ID, Application::APP_ID . '-' . 'main');
+		/* Return template from templates/ */
 		return new TemplateResponse(Application::APP_ID, 'main');
 	}
 }
