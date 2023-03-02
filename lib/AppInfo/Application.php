@@ -6,11 +6,26 @@ declare(strict_types=1);
 namespace OCA\Archive\AppInfo;
 
 use OCP\AppFramework\App;
+use OCP\EventDispatcher\IEventDispatcher; 
+use OCP\Util;
+
+use OCA\Files\Event\LoadAdditionalScriptsEvent;
 
 class Application extends App {
 	public const APP_ID = 'archive';
 
 	public function __construct() {
 		parent::__construct(self::APP_ID);
+
+		// Code that runs every time Nextcloud loads a page if this app is enabled
+		$container = $this->getContainer();
+		$eventDispatcher = $container->get(IEventDispatcher::class);
+				
+				
+		// Load files plugin script when the Files app triggers the LoadAdditionalScriptsEvent event
+		$eventDispatcher->addListener(LoadAdditionalScriptsEvent::class, function () {
+			// Load archive-filesplugin.js script once the Files app has done loading its scripts
+			Util::addscript(self::APP_ID, self::APP_ID . '-' . 'filesplugin', 'files');
+		});
 	}
 }
