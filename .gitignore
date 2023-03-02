@@ -109,3 +109,6 @@ dist
 # Ignore vendor and build
 build/
 vendor/
+
+# Ignore built js files
+js/
