@@ -51,7 +51,7 @@ class AdminSection implements IIconSection {
 	 * @return ?string The relative path to a an icon describing the section
 	 */
 	public function getIcon(): ?string {
-		return $this->urlGenerator->imagePath('core', 'categories/integration.svg');
+		return $this->urlGenerator->imagePath('core', 'categories/bundles.svg');
 	}
 
 }
