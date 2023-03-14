@@ -1,22 +1,46 @@
 <?php
 namespace OCA\Archive\Settings;
 
+use OCP\AppFramework\Services\IInitialState;
 use OCP\AppFramework\Http\TemplateResponse;
 use OCP\Settings\ISettings;
+use OCP\IConfig;
 use OCP\Util;
 
 use OCA\Archive\AppInfo\Application;
 
 class Admin implements ISettings {
 
-	public function __construct() {
-		
+	/**
+	 * @var IConfig
+	 */
+	private $config;
+	/**
+	 * @var IInitialState
+	 */
+	private $initialStateService;
+
+	public function __construct(IConfig $config,
+								IInitialState $initialStateService
+	) {
+		$this->config = $config;
+		$this->initialStateService = $initialStateService;
 	}
 
 	/**
 	 * @return TemplateResponse
 	 */
 	public function getForm(): TemplateResponse {
+		/* Get values from config.php file, if empty return default values */
+		$adminSettings = $this->config->getSystemValue('archive', [
+			'url' => '',
+			'token' => '',
+			'tls' => true,
+		]);
+
+		/* Pass values to initial state service. Values than can be consumed by Vue frontend via @nextcloud/initial-state */
+		$this->initialStateService->provideInitialState('admin-settings', $adminSettings);
+
         /* Load minified front-end script from js/ */
         Util::addScript(Application::APP_ID, Application::APP_ID . '-' . 'adminSettings');
 		/* Return template from templates/ */

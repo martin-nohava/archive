@@ -53,4 +53,22 @@ class ArchiveApiController extends ApiController {
 		}
 	}
 
+	/**
+	 * @NoAdminRequired
+	 *
+	 * @param string $url
+	 * @return DataResponse
+	 * @throws NotPermittedException
+	 * @throws LockedException
+	 * @throws NoUserException
+	 */
+	public function connected(string $url) {
+		$result = $this->service->connected($url);
+		if (isset($result['error'])) {
+			return new DataResponse($result['error'], Http::STATUS_BAD_REQUEST);
+		} else {
+			return new DataResponse($result);
+		}
+	}
+
 }

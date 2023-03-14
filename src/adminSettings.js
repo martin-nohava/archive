@@ -10,6 +10,7 @@
  */
 
 import Vue from 'vue'
+import './bootstrap.js'
 import AdminSettings from './components/AdminSettings.vue'
 
 const VueAdminSettings = Vue.extend(AdminSettings)

@@ -16,7 +16,10 @@ return [
 		['name' => 'page#index', 'url' => '/', 'verb' => 'GET'],
 		//['name' => 'note_api#preflighted_cors', 'url' => '/api/0.1/{path}', 'verb' => 'OPTIONS', 'requirements' => ['path' => '.+']],
 
+		['name' => 'archiveApi#connected', 'url' => '/connected', 'verb' => 'POST'],
 		['name' => 'archiveApi#submitFile', 'url' => '/submit-file', 'verb' => 'POST'],
+
+		['name' => 'config#setAdminSettings', 'url' => '/admin-settings', 'verb' => 'PUT'],
 		
 		['name' => 'files#getFileImage', 'url' => '/preview', 'verb' => 'GET'],
 	]

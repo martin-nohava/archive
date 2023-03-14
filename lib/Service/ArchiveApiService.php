@@ -20,6 +20,7 @@ use GuzzleHttp\Exception\ServerException;
 use OC\Files\Node\File;
 use OCA\Archive\AppInfo\Application;
 use OCP\Files\IRootFolder;
+use OCP\IConfig;
 use OCP\IL10N;
 use Psr\Log\LoggerInterface;
 use OCP\Http\Client\IClientService;
@@ -41,6 +42,10 @@ class ArchiveApiService {
 	 * @var IRootFolder
 	 */
 	private $root;
+	/**
+	 * @var IConfig
+	 */
+	private $config;
 
 	/**
 	 * Service to comunicate with Archive server API
@@ -48,11 +53,30 @@ class ArchiveApiService {
 	public function __construct (LoggerInterface $logger,
 								IL10N $l10n,
 								IRootFolder $root,
+								IConfig $config,
 								IClientService $clientService) {
 		$this->logger = $logger;
 		$this->l10n = $l10n;
+		$this->config = $config;
 		$this->client = $clientService->newClient();
 		$this->root = $root;
+	}
+
+	/**
+	 * @NoAdminRequired
+	 *
+	 * @param string $url
+	 * @return string
+	 */
+	public function formatUrl(string $url) {
+		/* Append correct protocol to the URL based on admin settings */
+		$tls = $this->config->getSystemValue('archive', [ 'tls' => false ])['tls'];
+
+		if ($tls) {
+			return 'https://'.$url;
+		} else {
+			return 'http://'.$url;
+		}
 	}
 
 	/**
@@ -68,11 +92,11 @@ class ArchiveApiService {
 	public function submitFile(string $userId, int $fileId, string $comment): array {
 		$userFolder = $this->root->getUserFolder($userId);
 		$files = $userFolder->getById($fileId);
+		$url = $this->config->getSystemValue('archive', [ 'url' => 'localhost' ])['url'];
 		if (count($files) > 0 && $files[0] instanceof File) {
 			$file = $files[0];
-			$serverUrl = 'http://nextcloudserver.nohavovi.cz:5000';
-			$endpoint = '/submit-file';
-			$sendResult = $this->postFile($serverUrl, $endpoint, $comment, $file);
+			$url = $this->formatUrl($url).'/api/submit-file';
+			$sendResult = $this->postFile($url, $comment, $file);
 			if (isset($sendResult['error'])) {
 				return $sendResult;
 			}
@@ -99,10 +123,9 @@ class ArchiveApiService {
 	 * @return array|mixed|resource|string|string[]
 	 * @throws Exception
 	 */
-	public function postFile(string $url, string $endPoint, string $comment, $file) {
+	public function postFile(string $url, string $comment, $file) {
 		//TODO: Implement token
 		try {
-			$url = $url . '/api' . $endPoint;
 			$options = [
 				'headers' => [
 					'Transfer-Encoding' => 'chunked'
@@ -131,7 +154,35 @@ class ArchiveApiService {
 				return json_decode($body, true);
 			}
 		} catch (ServerException | ClientException $e) {
-			$this->logger->warning('Failed to submit file: '.$e->getMessage(), ['app' => Application::APP_ID]);
+			$this->logger->warning('Failed to submit file: '.$e->getMessage(), ['archive' => Application::APP_ID]);
+			return ['error' => $e->getMessage()];
+		}
+	}
+
+	/**
+	 * @NoAdminRequired
+	 *
+	 * @param string $url
+	 * @return array|mixed|resource|string|string[]
+	 * @throws Exception
+	 */
+	public function connected(string $url) {
+		try {
+			$url = $this->formatUrl($url).'/api/status';
+			
+			$options = [];
+
+			$response = $this->client->get($url, $options);
+			$body = $response->getBody();
+			$respCode = $response->getStatusCode();
+
+			if ($respCode >= 400) {
+				return ['error' => $this->l10n->t('Bad credentials')];
+			} else {
+				return json_decode($body, true);
+			}
+		} catch (ServerException | ClientException $e) {
+			$this->logger->warning('Failed to connect: '.$e->getMessage(), ['archive' => Application::APP_ID]);
 			return ['error' => $e->getMessage()];
 		}
 	}
