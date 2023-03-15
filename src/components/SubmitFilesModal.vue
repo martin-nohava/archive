@@ -69,7 +69,6 @@
 						trailing-button-icon="close"
 						:show-trailing-button="comment !== ''"
 						@trailing-button-click="clearComment">
-						<Magnify :size="16" />
 					</NcTextField>
 					
 				</div>
@@ -80,6 +79,12 @@
 				</span>
 				<div class="archive-footer">
 					<div class="spacer" />
+					<div class="warning-container" v-if="!connected">
+						<AlertIcon class="warning-icon" />
+						<label>
+							{{t('archive', 'Could not connect to the archivation server!')}}
+						</label>
+					</div>
 					<NcButton
 						@click="closeModal">
 						{{ t('archive', 'Cancel') }}
@@ -107,8 +112,10 @@ import ArchiveCogIcon from 'vue-material-design-icons/ArchiveCog.vue'
 import CommentIcon from 'vue-material-design-icons/Comment.vue'
 import CheckCircleIcon from 'vue-material-design-icons/CheckCircle.vue'
 import ArchivePlusIcon from 'vue-material-design-icons/ArchivePlus.vue'
+import AlertIcon from 'vue-material-design-icons/Alert.vue'
 import { generateUrl } from '@nextcloud/router'
-import { humanFileSize } from '../helpers.js'
+import axios from '@nextcloud/axios'
+import { humanFileSize, notConnectedDialog } from '../helpers.js'
 
 const STATES = {
 	IN_PROGRESS: 1,
@@ -130,6 +137,7 @@ export default {
 		CommentIcon,
 		CheckCircleIcon,
 		CloseIcon,
+		AlertIcon
 	},
 	props: [],
 	data() {
@@ -137,6 +145,7 @@ export default {
 			show: false,
 			loading: false,
 			deteteFiles: true,
+			connected: true,
 			comment: '',
 			files: [],
 			fileStates: {},
@@ -154,8 +163,8 @@ export default {
 			return this.files.filter((f) => f.type !== 'dir').length === 0
 		},
 		optionsValid() {
-			/* Valid if files are not only directories and at least one file is selected and loading is off */
-			return !this.onlyDirectories && this.files.length > 0 && !this.loading
+			/* Valid if files are not only directories and at least one file is selected and loading is off and server is reachable */
+			return !this.onlyDirectories && this.files.length > 0 && !this.loading && this.connected
 		},
 	},
 	watch: {
@@ -170,12 +179,14 @@ export default {
 			this.fileStates = {}
 			this.comment = ''
 			this.deteteFiles = true
+			this.connected = true
 		},
 		clearComment() {
 			this.comment = ''
 		},
 		showModal() {
 			this.show = true
+			this.checkConnection()
 		},
 		closeModal() {
 			this.show = false
@@ -185,6 +196,18 @@ export default {
 		setFiles(files) {
 			this.files = files
 		},
+		/* Check connection to Archive server API */
+        checkConnection() {
+            const url = generateUrl('/apps/archive/connected')
+
+			axios.get(url).then((response) => {
+				this.connected = true
+			}).catch((error) => {
+				this.connected = false
+				console.debug(error)
+                notConnectedDialog()
+			})
+        },
 		submit() {
 			this.loading = true
 			this.$emit('validate', {
@@ -310,4 +333,14 @@ export default {
 		margin-left: 8px;
 	}
 }
+.warning-container {
+        margin: 7px 0 7px 0;
+        display: flex;
+        > label {
+            margin-left: 8px;
+        }
+        .warning-icon {
+            color: var(--color-warning);
+        }
+    }
 </style>

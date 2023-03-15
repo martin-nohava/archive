@@ -6,7 +6,7 @@
     <div>
         <NcSettingsSection
             title="Connect to the Archive server"
-            description="Please fill in the Archive server IP address or domain name and authentication token. If Archive server is installed in the same location as the Nextcloud instance, choose the Local option."
+            description="Nextcloud Archive requires a separate server to which selected files are moved and securely archived. To enable archiving, you must first connect to server."
             doc-url="https://github.com/martin-nohava/archive"
             :limit-width="true">
 
@@ -34,17 +34,16 @@
                     </strong>
                 </span>
 			</span>
-
             <NcTextField :value.sync="state.url"
-                label="Archive server location"
-                placeholder="example.domain:port"
+                :label="t('archive', 'URL (or IP) address and port number of Archive server')"
+                placeholder="https://example.domain:port"
                 trailing-button-icon="close"
                 :error="!urlIsValid"
                 :show-trailing-button="state.url !== ''"
                 @trailing-button-click="clearUrl"
                 :label-visible="true"
-                :helper-text="(urlIsValid) ? '' : 'Enter valid domain name or IP address with port'">
-                <WebIcon :size="16" />
+                :helper-text="(urlIsValid) ? '' : 'Enter valid URL or IP address with a port'">
+                <WebIcon :size="16"/>
             </NcTextField>
 
             <NcPasswordField :value.sync="state.token"
@@ -53,8 +52,15 @@
                 :label-visible="true">
                 <LockIcon :size="16" />
             </NcPasswordField>
+
             <div class="toggle-container">
-                <NcCheckboxRadioSwitch :checked.sync="state.tls">{{ t('archive', 'Connection over TLS') }}</NcCheckboxRadioSwitch>
+                <NcCheckboxRadioSwitch :checked.sync="state.selfsigned">{{ t('archive', 'Allow self signed certificates') }}</NcCheckboxRadioSwitch>
+            </div>
+            <div class="warning-container" v-if="state.selfsigned">
+                <AlertShieldIcon class="warning-icon" />
+					<label>
+						{{t('archive', 'Trusting all certificates, connection might not be secured!')}}
+					</label>
             </div>
             <NcButton
                 text="Connect"
@@ -92,7 +98,7 @@
                 </span>
 			</span>
             <div class="toggle-container">
-                <NcCheckboxRadioSwitch :disabled="true" :checked.sync="encryption">Enable post quantum encryption</NcCheckboxRadioSwitch>
+                <NcCheckboxRadioSwitch :disabled="true" :checked.sync="encryption">Enable PQC encryption</NcCheckboxRadioSwitch>
                 <NcCheckboxRadioSwitch :disabled="true" :checked.sync="hybrid">Enable hybrid digital signatures</NcCheckboxRadioSwitch>
             </div>
             <NcButton
@@ -115,12 +121,13 @@ import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
 import { loadState } from '@nextcloud/initial-state'
 import { showError, showSuccess } from '@nextcloud/dialogs'
-import { NcSettingsSection, NcPasswordField, NcTextField, NcCheckboxRadioSwitch, NcButton, NcNoteCard, NcTimezonePicker, NcLoadingIcon } from '@nextcloud/vue'
+import { NcSettingsSection, NcPasswordField, NcTextField, NcCheckboxRadioSwitch, NcButton, NcNoteCard, NcTimezonePicker, NcLoadingIcon, NcSelect } from '@nextcloud/vue'
 import LockIcon from 'vue-material-design-icons/Lock.vue'
 import WebIcon from 'vue-material-design-icons/Web.vue'
 import ConnectionIcon from 'vue-material-design-icons/Connection.vue'
 import EarthIcon from 'vue-material-design-icons/Earth.vue'
 import ContentSaveIcon from 'vue-material-design-icons/ContentSave.vue'
+import AlertShieldIcon from 'vue-material-design-icons/ShieldAlert.vue'
 
 export default ({
     components: {
@@ -136,7 +143,9 @@ export default ({
         NcNoteCard,
         NcTimezonePicker,
         NcLoadingIcon,
-        ContentSaveIcon
+        ContentSaveIcon,
+        AlertShieldIcon,
+        NcSelect
     },
 
     data() {
@@ -146,7 +155,7 @@ export default ({
             tz: 'Prague',
             connected: false,
             checkingConnection: false,
-			state: loadState('archive', 'admin-settings'),
+			state: loadState('archive', 'admin-settings')
 		}
 	},
 
@@ -162,7 +171,7 @@ export default ({
             let validUrl = new RegExp(/^(?:[A-Za-z0-9-]+\.)+[A-Za-z0-9]{1,3}:\d{1,5}$/);
             /* Matches ip:port */
             let validIp = new RegExp(/^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5]):[0-9]+$/);
-            return (this.state.url ==='') ? true : validUrl.test(this.state.url) || validIp.test(this.state.url)
+            return true //(this.state.url ==='') ? true : validUrl.test(this.state.url) || validIp.test(this.state.url)
         }
     },
 
@@ -179,20 +188,12 @@ export default ({
         checkConnection() {
             this.checkingConnection = true
             const url = generateUrl('/apps/archive/connected')
-			
-            const req = {
-                url: this.state.url
-            }
 
-			axios.post(url, req).then((response) => {
+			axios.get(url).then((response) => {
 				showSuccess(t('archive', 'Successfully connected'))
                 this.connected = true
                 this.checkingConnection = false
 			}).catch((error) => {
-				showError(
-					t('archive', 'Failed to connect to archive server')
-					+ ': ' + (error.response?.request?.responseText ?? '')
-				)
 				console.debug(error)
                 this.connected = false
                 this.checkingConnection = false
@@ -232,7 +233,7 @@ export default ({
     }
 
     .toggle-container {
-        margin: 14px;
+        margin: 7px 0 7px 0;
     }
 
     .field-label {
@@ -248,5 +249,16 @@ export default ({
         padding-top: 7px;
         padding-right: 14px;
         white-space: nowrap;
+    }
+
+    .warning-container {
+        margin: 7px 0 7px 0;
+        display: flex;
+        > label {
+            margin-left: 8px;
+        }
+        .warning-icon {
+            color: var(--color-warning);
+        }
     }
 </style>

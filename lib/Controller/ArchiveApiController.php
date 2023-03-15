@@ -62,8 +62,8 @@ class ArchiveApiController extends ApiController {
 	 * @throws LockedException
 	 * @throws NoUserException
 	 */
-	public function connected(string $url) {
-		$result = $this->service->connected($url);
+	public function connected() {
+		$result = $this->service->connected();
 		if (isset($result['error'])) {
 			return new DataResponse($result['error'], Http::STATUS_BAD_REQUEST);
 		} else {

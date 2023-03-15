@@ -63,23 +63,6 @@ class ArchiveApiService {
 	}
 
 	/**
-	 * @NoAdminRequired
-	 *
-	 * @param string $url
-	 * @return string
-	 */
-	public function formatUrl(string $url) {
-		/* Append correct protocol to the URL based on admin settings */
-		$tls = $this->config->getSystemValue('archive', [ 'tls' => false ])['tls'];
-
-		if ($tls) {
-			return 'https://'.$url;
-		} else {
-			return 'http://'.$url;
-		}
-	}
-
-	/**
 	 * @param string $userId
 	 * @param string $mattermostUrl
 	 * @param int $fileId
@@ -92,11 +75,12 @@ class ArchiveApiService {
 	public function submitFile(string $userId, int $fileId, string $comment): array {
 		$userFolder = $this->root->getUserFolder($userId);
 		$files = $userFolder->getById($fileId);
-		$url = $this->config->getSystemValue('archive', [ 'url' => 'localhost' ])['url'];
+		$url = $this->config->getSystemValue('archive', '')['url'];
+		$selfsigned = $this->config->getSystemValue('archive', false)['selfsigned'];
 		if (count($files) > 0 && $files[0] instanceof File) {
 			$file = $files[0];
-			$url = $this->formatUrl($url).'/api/submit-file';
-			$sendResult = $this->postFile($url, $comment, $file);
+			$url = $url.'/api/submit-file';
+			$sendResult = $this->postFile($url, $selfsigned, $comment, $file);
 			if (isset($sendResult['error'])) {
 				return $sendResult;
 			}
@@ -123,7 +107,7 @@ class ArchiveApiService {
 	 * @return array|mixed|resource|string|string[]
 	 * @throws Exception
 	 */
-	public function postFile(string $url, string $comment, $file) {
+	public function postFile(string $url, bool $selfsigned, string $comment, $file) {
 		//TODO: Implement token
 		try {
 			$options = [
@@ -142,6 +126,7 @@ class ArchiveApiService {
 					]
 				],
 				'timeout' => 0,
+				'verify' => !$selfsigned,
 			];
 
 			$response = $this->client->post($url, $options);
@@ -162,15 +147,17 @@ class ArchiveApiService {
 	/**
 	 * @NoAdminRequired
 	 *
-	 * @param string $url
 	 * @return array|mixed|resource|string|string[]
 	 * @throws Exception
 	 */
-	public function connected(string $url) {
+	public function connected() {
 		try {
-			$url = $this->formatUrl($url).'/api/status';
+			$url = $this->config->getSystemValue('archive', '')['url'].'/api/status';
+			$selfsigned = $this->config->getSystemValue('archive', false)['selfsigned'];
 			
-			$options = [];
+			$options = [
+				'verify' => !$selfsigned
+			];
 
 			$response = $this->client->get($url, $options);
 			$body = $response->getBody();

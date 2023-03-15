@@ -35,7 +35,7 @@ class Admin implements ISettings {
 		$adminSettings = $this->config->getSystemValue('archive', [
 			'url' => '',
 			'token' => '',
-			'tls' => true,
+			'selfsigned' => false,
 		]);
 
 		/* Pass values to initial state service. Values than can be consumed by Vue frontend via @nextcloud/initial-state */

@@ -11,28 +11,14 @@
  * https://github.com/julien-nc/integration_mattermost by Julien Veyssier 2022
  */
 
-import { generateUrl } from '@nextcloud/router'
-
-export function gotoSettingsConfirmDialog() {
-	const settingsLink = generateUrl('/settings/user/connected-accounts')
-	OC.dialogs.message(
-		t('integration_mattermost', 'You need to connect to a Mattermost server before using the Mattermost integration.')
-		+ '<br><br>'
-		+ t('integration_mattermost', 'Do you want to go to your "Connect accounts" personal settings?'),
-		t('integration_mattermost', 'Connect to Mattermost'),
-		'none',
-		{
-			type: OC.dialogs.YES_NO_BUTTONS,
-			confirm: t('integration_mattermost', 'Go to settings'),
-			confirmClasses: 'success',
-			cancel: t('integration_mattermost', 'Cancel'),
+export function notConnectedDialog() {
+	
+	OC.dialogs.info(
+		t('archive', 'Could not connect to archivation server! Contact server administrator.'),
+		t('archive', 'Not connected'),
+		() => {
+			console.log('[Archive] Not connected modal closed')
 		},
-		(result) => {
-			if (result) {
-				window.location.replace(settingsLink)
-			}
-		},
-		true,
 		true,
 	)
 }
