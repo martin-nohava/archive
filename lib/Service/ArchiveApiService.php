@@ -77,10 +77,11 @@ class ArchiveApiService {
 		$files = $userFolder->getById($fileId);
 		$url = $this->config->getSystemValue('archive', '')['url'];
 		$selfsigned = $this->config->getSystemValue('archive', false)['selfsigned'];
+		$token = $this->config->getSystemValue('archive', false)['token'];
 		if (count($files) > 0 && $files[0] instanceof File) {
 			$file = $files[0];
 			$url = $url.'/api/submit-file';
-			$sendResult = $this->postFile($url, $selfsigned, $comment, $file);
+			$sendResult = $this->postFile($url, $selfsigned, $userId, $token, $file);
 			if (isset($sendResult['error'])) {
 				return $sendResult;
 			}
@@ -107,12 +108,13 @@ class ArchiveApiService {
 	 * @return array|mixed|resource|string|string[]
 	 * @throws Exception
 	 */
-	public function postFile(string $url, bool $selfsigned, string $comment, $file) {
+	public function postFile(string $url, bool $selfsigned, string $owner, string $token, $file) {
 		//TODO: Implement token
 		try {
 			$options = [
 				'headers' => [
-					'Transfer-Encoding' => 'chunked'
+					'Transfer-Encoding' => 'chunked',
+					'x-access-token' => $token
 				],
 				'multipart' => [ 
 					[
@@ -121,8 +123,8 @@ class ArchiveApiService {
 						'filename' => $file->getName(),
 					],
 					[
-						'name'     => 'comment',
-						'contents' => $comment,
+						'name'     => 'owner',
+						'contents' => $owner,
 					]
 				],
 				'timeout' => 0,
@@ -154,8 +156,12 @@ class ArchiveApiService {
 		try {
 			$url = $this->config->getSystemValue('archive', '')['url'].'/api/status';
 			$selfsigned = $this->config->getSystemValue('archive', false)['selfsigned'];
+			$token = $this->config->getSystemValue('archive', false)['token'];
 			
 			$options = [
+				'headers' => [
+					'x-access-token' => $token
+				],
 				'verify' => !$selfsigned
 			];
 
