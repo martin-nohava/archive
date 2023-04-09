@@ -38,11 +38,9 @@
                 :label="t('archive', 'URL (or IP) address and port number of Archive server')"
                 placeholder="https://example.domain:port"
                 trailing-button-icon="close"
-                :error="!urlIsValid"
                 :show-trailing-button="state.url !== ''"
                 @trailing-button-click="clearUrl"
-                :label-visible="true"
-                :helper-text="(urlIsValid) ? '' : 'Enter valid URL or IP address with a port'">
+                :label-visible="true">
                 <WebIcon :size="16"/>
             </NcTextField>
 
@@ -59,7 +57,13 @@
             <div class="warning-container" v-if="state.selfsigned">
                 <AlertShieldIcon class="warning-icon" />
 					<label>
-						{{t('archive', 'Trusting all certificates, connection might not be secured!')}}
+						{{t('archive', 'Trusting all certificates, connection might be insecure!')}}
+					</label>
+            </div>
+            <div class="warning-container" v-if="!urlIsSecure">
+                <AlertShieldIcon class="warning-icon" />
+					<label>
+						{{t('archive', 'The connection will be initiated via insecure HTTP! (add https://)')}}
 					</label>
             </div>
             <NcButton
@@ -166,12 +170,14 @@ export default ({
 	},
 
     computed: {
-        urlIsValid() {
+        urlIsSecure() {
+            /* Matches https:// */
+            let secureUrl = new RegExp(/https:\/\//)
             /* Matches domain.name:port */
-            let validUrl = new RegExp(/^(?:[A-Za-z0-9-]+\.)+[A-Za-z0-9]{1,3}:\d{1,5}$/);
+            //let validUrl = new RegExp(/^(?:[A-Za-z0-9-]+\.)+[A-Za-z0-9]{1,3}:\d{1,5}$/);
             /* Matches ip:port */
-            let validIp = new RegExp(/^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5]):[0-9]+$/);
-            return true //(this.state.url ==='') ? true : validUrl.test(this.state.url) || validIp.test(this.state.url)
+            //let validIp = new RegExp(/^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5]):[0-9]+$/);
+            return (this.state.url ==='') ? true : secureUrl.test(this.state.url) //(this.state.url ==='') ? true : validUrl.test(this.state.url) || validIp.test(this.state.url)
         }
     },
 
