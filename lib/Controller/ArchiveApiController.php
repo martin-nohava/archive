@@ -71,4 +71,58 @@ class ArchiveApiController extends ApiController {
 		}
 	}
 
+	/**
+	 * @NoAdminRequired
+	 *
+	 * @param string $url
+	 * @return DataResponse
+	 * @throws NotPermittedException
+	 * @throws LockedException
+	 * @throws NoUserException
+	 */
+	public function listFiles() {
+		$result = $this->service->listfiles($this->userId);
+		if (isset($result['error'])) {
+			return new DataResponse($result['error'], Http::STATUS_BAD_REQUEST);
+		} else {
+			return new DataResponse($result);
+		}
+	}
+
+	/**
+	 * @NoAdminRequired
+	 *
+	 * @param int $id
+	 * @return DataResponse
+	 * @throws NotPermittedException
+	 * @throws LockedException
+	 * @throws NoUserException
+	 */
+	public function validateFile($id) {
+		$result = $this->service->validatefile($id);
+		if (isset($result['error'])) {
+			return new DataResponse($result['error'], Http::STATUS_BAD_REQUEST);
+		} else {
+			return new DataResponse($result);
+		}
+	}
+
+	/**
+	 * @NoAdminRequired
+	 *
+	 * @param int $id
+	 * @return DataResponse
+	 * @throws NotPermittedException
+	 * @throws LockedException
+	 * @throws NoUserException
+	 */
+	public function validateFiles() {
+		$result = $this->service->validatefiles();
+		if (isset($result['error'])) {
+			return new DataResponse($result['error'], Http::STATUS_BAD_REQUEST);
+		} else {
+			return new DataResponse($result);
+		}
+	}
+
 }

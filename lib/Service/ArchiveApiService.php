@@ -180,4 +180,121 @@ class ArchiveApiService {
 		}
 	}
 
+	/**
+	 * @NoAdminRequired
+	 *
+	 * @param string $userId
+	 * @return array|mixed|resource|string|string[]
+	 * @throws Exception
+	 */
+	public function listfiles(string $owner) {
+		try {
+			$url = $this->config->getSystemValue('archive', '')['url'].'/api/list-files';
+			$selfsigned = $this->config->getSystemValue('archive', false)['selfsigned'];
+			$token = $this->config->getSystemValue('archive', false)['token'];
+			
+			$options = [
+				'headers' => [
+					'x-access-token' => $token
+				],
+				'multipart' => [
+					[
+						'name'     => 'owner',
+						'contents' => $owner,
+					]
+				],
+				'verify' => !$selfsigned
+			];
+
+			$response = $this->client->get($url, $options);
+			$body = $response->getBody();
+			$respCode = $response->getStatusCode();
+
+			if ($respCode >= 400) {
+				return ['error' => $this->l10n->t('Bad credentials')];
+			} else {
+				return json_decode($body, true);
+			}
+		} catch (ServerException | ClientException $e) {
+			$this->logger->warning('Failed to connect: '.$e->getMessage(), ['archive' => Application::APP_ID]);
+			return ['error' => $e->getMessage()];
+		}
+	}
+
+	/**
+	 * @NoAdminRequired
+	 *
+	 * @param string $userId
+	 * @return array|mixed|resource|string|string[]
+	 * @throws Exception
+	 */
+	public function validatefile(int $id) {
+		try {
+			$url = $this->config->getSystemValue('archive', '')['url'].'/api/validate-file';
+			$selfsigned = $this->config->getSystemValue('archive', false)['selfsigned'];
+			$token = $this->config->getSystemValue('archive', false)['token'];
+			
+			$options = [
+				'headers' => [
+					'x-access-token' => $token
+				],
+				'multipart' => [
+					[
+						'name'     => 'fileid',
+						'contents' => $id,
+					]
+				],
+				'verify' => !$selfsigned
+			];
+
+			$response = $this->client->get($url, $options);
+			$body = $response->getBody();
+			$respCode = $response->getStatusCode();
+
+			if ($respCode >= 400) {
+				return ['error' => $this->l10n->t('Bad credentials')];
+			} else {
+				return json_decode($body, true);
+			}
+		} catch (ServerException | ClientException $e) {
+			$this->logger->warning('Failed to connect: '.$e->getMessage(), ['archive' => Application::APP_ID]);
+			return ['error' => $e->getMessage()];
+		}
+	}
+
+	/**
+	 * @NoAdminRequired
+	 *
+	 * @param string $userId
+	 * @return array|mixed|resource|string|string[]
+	 * @throws Exception
+	 */
+	public function validatefiles() {
+		try {
+			$url = $this->config->getSystemValue('archive', '')['url'].'/api/validate-files';
+			$selfsigned = $this->config->getSystemValue('archive', false)['selfsigned'];
+			$token = $this->config->getSystemValue('archive', false)['token'];
+			
+			$options = [
+				'headers' => [
+					'x-access-token' => $token
+				],
+				'verify' => !$selfsigned
+			];
+
+			$response = $this->client->get($url, $options);
+			$body = $response->getBody();
+			$respCode = $response->getStatusCode();
+
+			if ($respCode >= 400) {
+				return ['error' => $this->l10n->t('Bad credentials')];
+			} else {
+				return json_decode($body, true);
+			}
+		} catch (ServerException | ClientException $e) {
+			$this->logger->warning('Failed to connect: '.$e->getMessage(), ['archive' => Application::APP_ID]);
+			return ['error' => $e->getMessage()];
+		}
+	}
+
 }

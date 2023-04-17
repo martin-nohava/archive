@@ -4,238 +4,216 @@
     SPDX-License-Identifier: AGPL-3.0-or-later
     -->
 	<div id="content" class="app-archive">
-		<AppNavigation>
-			<AppNavigationNew v-if="!loading"
-				:text="t('archive', 'New note')"
-				:disabled="false"
-				button-id="new-archive-button"
-				button-class="icon-add"
-				@click="newNote" />
-			<ul>
-				<AppNavigationItem v-for="note in notes"
-					:key="note.id"
-					:title="note.title ? note.title : t('archive', 'New note')"
-					:class="{active: currentNoteId === note.id}"
-					@click="openNote(note)">
-					<template slot="actions">
-						<ActionButton v-if="note.id === -1"
-							icon="icon-close"
-							@click="cancelNewNote(note)">
-							{{
-							t('archive', 'Cancel note creation') }}
-						</ActionButton>
-						<ActionButton v-else
-							icon="icon-delete"
-							@click="deleteNote(note)">
-							{{
-							 t('archive', 'Delete note') }}
-						</ActionButton>
+		<NcAppContent>
+			<div class="borders">
+				<div class="header">
+					<div id="left">
+						<h1 class="title">
+							<span>
+								{{ t('archive', 'Archived files') }}
+							</span>
+						</h1>
+						<p>{{ t('archive', 'Browse your archived files in chronological order') }}</p>
+					</div>
+					<div class="buttons" id="right">
+						<NcButton
+							id="inline–button"
+							type="secondary"
+							text="Reload"
+							@click="loadFiles()">
+							Reload
+						</NcButton>
+						<NcButton
+							type="primary"
+							text="Check integrity on all files"
+							:disabled="validating_all"
+							@click="validateFiles()">
+							<template #icon>
+								<CheckCircleIcon v-if="!validating_all" :size="20" />
+								<NcLoadingIcon v-else :size="20" />
+							</template>
+							Check integrity on all files
+						</NcButton>
+					</div>
+				</div>
+				<div v-if="loading" class="loading">
+					<NcLoadingIcon :size="64" title="Loading files..."/>
+				</div>
+				<NcEmptyContent
+					description="After you archive any file it will show up here."
+					v-else-if="files.length == 0">
+					<template #icon>
+						<ArchiveIcon />
 					</template>
-				</AppNavigationItem>
-			</ul>
-		</AppNavigation>
-		<AppContent>
-			<div v-if="currentNote">
-				<input ref="title"
-					v-model="currentNote.title"
-					type="text"
-					:disabled="updating">
-				<textarea ref="content" v-model="currentNote.content" :disabled="updating" />
-				<input type="button"
-					class="primary"
-					:value="t('archive', 'Save')"
-					:disabled="updating || !savePossible"
-					@click="saveNote">
+					<template #title>
+						<h1 class="empty-content__title">
+							Archive is empty
+						</h1>
+					</template>
+				</NcEmptyContent>
+				<div v-else>
+					<ul>
+						<NcListItem v-for="file in files"
+							:title="file.name"
+							:bold="false"
+							:force-display-actions="true"
+							:key="file.id"
+							counterType="highlighted">
+							<template #icon>
+								<NcAvatar :size="44" :display-name="file.name" />
+							</template>
+							<template #subtitle>
+								{{ t('archive', 'Archived at:') }} {{file.time_of_first_ts}} | {{ t('archive', 'Valid until:') }} {{file.expiration}}
+							</template>
+							<template #actions>
+								<NcActionButton 
+								:disabled="downloading">
+									<template #icon>
+										<DownloadIcon v-if="!downloading" :size="20" />
+										<NcLoadingIcon v-else :size="20" />
+									</template>
+									{{ t('archive', 'Download package') }}
+								</NcActionButton>
+								<NcActionButton
+								:disabled="validating"
+								@click="validateFile(file.id)">
+									<template #icon>
+										<CheckCircleIcon v-if="!validating" :size="20" />
+										<NcLoadingIcon v-else :size="20" />
+									</template>
+									{{ t('archive', 'Check integrity') }}
+								</NcActionButton>
+							</template>
+						</NcListItem>
+					</ul>
+				</div>
 			</div>
-			<div v-else id="emptycontent">
-				<div class="icon-file" />
-				<h2>{{
-				 t('archive', 'Create a note to get started') }}</h2>
-			</div>
-		</AppContent>
+		</NcAppContent>
 	</div>
 </template>
 
 <script>
-import ActionButton from '@nextcloud/vue/dist/Components/ActionButton'
-import AppContent from '@nextcloud/vue/dist/Components/AppContent'
-import AppNavigation from '@nextcloud/vue/dist/Components/AppNavigation'
-import AppNavigationItem from '@nextcloud/vue/dist/Components/AppNavigationItem'
-import AppNavigationNew from '@nextcloud/vue/dist/Components/AppNavigationNew'
-
-import '@nextcloud/dialogs/styles/toast.scss'
+import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
 import { showError, showSuccess } from '@nextcloud/dialogs'
-import axios from '@nextcloud/axios'
+import { translate as t, translatePlural as n } from '@nextcloud/l10n'
+import { NcAppContent, NcEmptyContent, NcListItem, NcAvatar, NcActionButton, NcButton, NcLoadingIcon } from '@nextcloud/vue'
+import ArchiveIcon from 'vue-material-design-icons/Archive.vue'
+import DownloadIcon from 'vue-material-design-icons/Download.vue'
+import CheckCircleIcon from 'vue-material-design-icons/CheckCircle.vue'
 
 export default {
 	name: 'App',
 	components: {
-		ActionButton,
-		AppContent,
-		AppNavigation,
-		AppNavigationItem,
-		AppNavigationNew,
+		NcAppContent,
+		NcEmptyContent,
+		NcListItem,
+		NcAvatar,
+		NcActionButton,
+		NcButton,
+		NcLoadingIcon,
+		ArchiveIcon,
+		DownloadIcon,
+		CheckCircleIcon
 	},
 	data() {
 		return {
-			notes: [],
-			currentNoteId: null,
-			updating: false,
+			files: [],
 			loading: true,
+			validating: false,
+			validating_all: false,
+			downloading: false,
 		}
 	},
 	computed: {
-		/**
-		 * Return the currently selected note object
-		 * @returns {Object|null}
-		 */
-		currentNote() {
-			if (this.currentNoteId === null) {
-				return null
-			}
-			return this.notes.find((note) => note.id === this.currentNoteId)
-		},
-
-		/**
-		 * Returns true if a note is selected and its title is not empty
-		 * @returns {Boolean}
-		 */
-		savePossible() {
-			return this.currentNote && this.currentNote.title !== ''
-		},
+		
 	},
-	/**
-	 * Fetch list of notes when the component is loaded
-	 */
+	
 	async mounted() {
-		try {
-			const response = await axios.get(generateUrl('/apps/archive/notes'))
-			this.notes = response.data
-		} catch (e) {
-			console.error(e)
-			showError(t('notestutorial', 'Could not fetch notes'))
-		}
-		this.loading = false
+		this.loadFiles()
 	},
 
 	methods: {
-		/**
-		 * Create a new note and focus the note content field automatically
-		 * @param {Object} note Note object
-		 */
-		openNote(note) {
-			if (this.updating) {
-				return
-			}
-			this.currentNoteId = note.id
-			this.$nextTick(() => {
-				this.$refs.content.focus()
-			})
-		},
-		/**
-		 * Action tiggered when clicking the save button
-		 * create a new note or save
-		 */
-		saveNote() {
-			if (this.currentNoteId === -1) {
-				this.createNote(this.currentNote)
-			} else {
-				this.updateNote(this.currentNote)
-			}
-		},
-		/**
-		 * Create a new note and focus the note content field automatically
-		 * The note is not yet saved, therefore an id of -1 is used until it
-		 * has been persisted in the backend
-		 */
-		newNote() {
-			if (this.currentNoteId !== -1) {
-				this.currentNoteId = -1
-				this.notes.push({
-					id: -1,
-					title: '',
-					content: '',
-				})
-				this.$nextTick(() => {
-					this.$refs.title.focus()
-				})
-			}
-		},
-		/**
-		 * Abort creating a new note
-		 */
-		cancelNewNote() {
-			this.notes.splice(this.notes.findIndex((note) => note.id === -1), 1)
-			this.currentNoteId = null
-		},
-		/**
-		 * Create a new note by sending the information to the server
-		 * @param {Object} note Note object
-		 */
-		async createNote(note) {
-			this.updating = true
+
+		async loadFiles() {
+			this.loading = true
 			try {
-				const response = await axios.post(generateUrl('/apps/archive/notes'), note)
-				const index = this.notes.findIndex((match) => match.id === this.currentNoteId)
-				this.$set(this.notes, index, response.data)
-				this.currentNoteId = response.data.id
+				const response = await axios.get(generateUrl('/apps/archive/list-files'))
+				this.files = response.data.files
 			} catch (e) {
 				console.error(e)
-				showError(t('notestutorial', 'Could not create the note'))
+				showError(t('archive', 'Could not fetch files!'))
+				this.loading = false
 			}
-			this.updating = false
+			this.loading = false
 		},
-		/**
-		 * Update an existing note on the server
-		 * @param {Object} note Note object
-		 */
-		async updateNote(note) {
-			this.updating = true
+
+		async validateFile(id) {
+			this.validating = true
 			try {
-				await axios.put(generateUrl(`/apps/archive/notes/${note.id}`), note)
+				const response = await axios.get(generateUrl('/apps/archive/validate-file/' + id))
+				showSuccess(response.data.message)
 			} catch (e) {
 				console.error(e)
-				showError(t('notestutorial', 'Could not update the note'))
+				showError(t('archive', 'Could not validate file!'))
+				this.validating = false
 			}
-			this.updating = false
+			this.validating = false
 		},
-		/**
-		 * Delete a note, remove it from the frontend and show a hint
-		 * @param {Object} note Note object
-		 */
-		async deleteNote(note) {
+
+		async validateFiles() {
+			this.validating_all = true
 			try {
-				await axios.delete(generateUrl(`/apps/archive/notes/${note.id}`))
-				this.notes.splice(this.notes.indexOf(note), 1)
-				if (this.currentNoteId === note.id) {
-					this.currentNoteId = null
-				}
-				showSuccess(t('archive', 'Note deleted'))
+				const response = await axios.get(generateUrl('/apps/archive/validate-files'))
+				showSuccess(response.data.message)
 			} catch (e) {
 				console.error(e)
-				showError(t('archive', 'Could not delete the note'))
+				showError(t('archive', 'Could not validate files!'))
+				this.validating_all = false
 			}
+			this.validating_all = false
 		},
+
 	},
 }
 </script>
 <style scoped>
-	#app-content > div {
-		width: 100%;
-		height: 100%;
-		padding: 20px;
-		display: flex;
-		flex-direction: column;
-		flex-grow: 1;
-	}
 
-	input[type='text'] {
-		width: 100%;
-	}
+.title {
+	font-weight: bold;
+	font-size: 25px;
+	line-height: 30px;
+}
 
-	textarea {
-		flex-grow: 1;
-		width: 100%;
-	}
+.header {
+	margin-bottom: 20px;
+	display: flex;
+	justify-content: space-between;
+}
+
+.buttons {
+	display: flex;
+}
+
+.loading {
+	display: flex;
+	justify-content: space-around;
+}
+
+#left {
+	align-self: flex-start;
+}
+
+#right {
+	align-self: flex-end;
+}
+
+#inline–button {
+	margin-right: 10px;
+}
+
+.borders {
+	margin: 25px 50px 25px 50px;
+}
+	
 </style>

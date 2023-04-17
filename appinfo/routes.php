@@ -18,6 +18,9 @@ return [
 
 		['name' => 'archiveApi#connected', 'url' => '/connected', 'verb' => 'GET'],
 		['name' => 'archiveApi#submitFile', 'url' => '/submit-file', 'verb' => 'POST'],
+		['name' => 'archiveApi#listFiles', 'url' => '/list-files', 'verb' => 'GET'],
+		['name' => 'archiveApi#validateFile', 'url' => '/validate-file/{id}', 'verb' => 'GET'],
+		['name' => 'archiveApi#validateFiles', 'url' => '/validate-files', 'verb' => 'GET'],
 
 		['name' => 'config#setAdminSettings', 'url' => '/admin-settings', 'verb' => 'PUT'],
 		
