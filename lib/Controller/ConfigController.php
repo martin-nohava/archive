@@ -23,8 +23,6 @@ class ConfigController extends Controller {
 	 */
 	private $config;
 
-	use Errors;
-
 	public function __construct(IRequest $request, 
                                 LoggerInterface $logger,
                                 IConfig $config) {

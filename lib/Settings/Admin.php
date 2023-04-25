@@ -34,7 +34,7 @@ class Admin implements ISettings {
 		/* Get values from config.php file, if empty return default values */
 		$adminSettings = $this->config->getSystemValue('archive', [
 			'url' => '',
-			'token' => '',
+			'secret' => '',
 			'selfsigned' => false,
 		]);
 

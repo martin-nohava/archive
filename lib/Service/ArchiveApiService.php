@@ -17,7 +17,7 @@ namespace OCA\Archive\Service;
 use Exception;
 use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Exception\ServerException;
-use OC\Files\Node\File;
+use OCP\Files\File;
 use OCA\Archive\AppInfo\Application;
 use OCP\Files\IRootFolder;
 use OCP\IConfig;
@@ -48,7 +48,7 @@ class ArchiveApiService {
 	private $config;
 
 	/**
-	 * Service to comunicate with Archive server API
+	 * Service to comunicate with Archive server API (Endpoint)
 	 */
 	public function __construct (LoggerInterface $logger,
 								IL10N $l10n,
@@ -64,24 +64,26 @@ class ArchiveApiService {
 
 	/**
 	 * @param string $userId
-	 * @param string $mattermostUrl
 	 * @param int $fileId
-	 * @param string $channelId
+	 * @param string $comment
 	 * @return array|string[]
 	 * @throws \OCP\Files\NotPermittedException
 	 * @throws \OCP\Lock\LockedException
 	 * @throws \OC\User\NoUserException
 	 */
 	public function submitFile(string $userId, int $fileId, string $comment): array {
+		/* Get required info */
 		$userFolder = $this->root->getUserFolder($userId);
 		$files = $userFolder->getById($fileId);
 		$url = $this->config->getSystemValue('archive', '')['url'];
 		$selfsigned = $this->config->getSystemValue('archive', false)['selfsigned'];
-		$token = $this->config->getSystemValue('archive', false)['token'];
+		$secret = $this->config->getSystemValue('archive', '')['secret'];
+		
+		/* Post file to remote API */
 		if (count($files) > 0 && $files[0] instanceof File) {
 			$file = $files[0];
 			$url = $url.'/api/submit-file';
-			$sendResult = $this->postFile($url, $selfsigned, $userId, $token, $file);
+			$sendResult = $this->postFile($url, $selfsigned, $userId, $secret, $file);
 			if (isset($sendResult['error'])) {
 				return $sendResult;
 			}
@@ -102,19 +104,19 @@ class ArchiveApiService {
 
 	/**
 	 * @param string $url
-	 * @param string $endPoint
-	 * @param string $comment
+	 * @param bool $selfsigned
+	 * @param string $owner
+	 * @param string $secret
 	 * @param $file
 	 * @return array|mixed|resource|string|string[]
 	 * @throws Exception
 	 */
-	public function postFile(string $url, bool $selfsigned, string $owner, string $token, $file) {
-		//TODO: Implement token
+	public function postFile(string $url, bool $selfsigned, string $owner, string $secret, $file) {
 		try {
 			$options = [
 				'headers' => [
 					'Transfer-Encoding' => 'chunked',
-					'x-access-token' => $token
+					'x-access-secret' => $secret
 				],
 				'multipart' => [ 
 					[
@@ -156,11 +158,11 @@ class ArchiveApiService {
 		try {
 			$url = $this->config->getSystemValue('archive', '')['url'].'/api/status';
 			$selfsigned = $this->config->getSystemValue('archive', false)['selfsigned'];
-			$token = $this->config->getSystemValue('archive', false)['token'];
+			$secret = $this->config->getSystemValue('archive', false)['secret'];
 			
 			$options = [
 				'headers' => [
-					'x-access-token' => $token
+					'x-access-secret' => $secret
 				],
 				'verify' => !$selfsigned
 			];
@@ -183,7 +185,7 @@ class ArchiveApiService {
 	/**
 	 * @NoAdminRequired
 	 *
-	 * @param string $userId
+	 * @param string $owner
 	 * @return array|mixed|resource|string|string[]
 	 * @throws Exception
 	 */
@@ -191,11 +193,11 @@ class ArchiveApiService {
 		try {
 			$url = $this->config->getSystemValue('archive', '')['url'].'/api/list-files';
 			$selfsigned = $this->config->getSystemValue('archive', false)['selfsigned'];
-			$token = $this->config->getSystemValue('archive', false)['token'];
+			$secret = $this->config->getSystemValue('archive', false)['secret'];
 			
 			$options = [
 				'headers' => [
-					'x-access-token' => $token
+					'x-access-secret' => $secret
 				],
 				'multipart' => [
 					[
@@ -224,7 +226,7 @@ class ArchiveApiService {
 	/**
 	 * @NoAdminRequired
 	 *
-	 * @param string $userId
+	 * @param string $id
 	 * @return array|mixed|resource|string|string[]
 	 * @throws Exception
 	 */
@@ -232,11 +234,11 @@ class ArchiveApiService {
 		try {
 			$url = $this->config->getSystemValue('archive', '')['url'].'/api/validate-file';
 			$selfsigned = $this->config->getSystemValue('archive', false)['selfsigned'];
-			$token = $this->config->getSystemValue('archive', false)['token'];
+			$secret = $this->config->getSystemValue('archive', false)['secret'];
 			
 			$options = [
 				'headers' => [
-					'x-access-token' => $token
+					'x-access-secret' => $secret
 				],
 				'multipart' => [
 					[
@@ -265,7 +267,6 @@ class ArchiveApiService {
 	/**
 	 * @NoAdminRequired
 	 *
-	 * @param string $userId
 	 * @return array|mixed|resource|string|string[]
 	 * @throws Exception
 	 */
@@ -273,11 +274,11 @@ class ArchiveApiService {
 		try {
 			$url = $this->config->getSystemValue('archive', '')['url'].'/api/validate-files';
 			$selfsigned = $this->config->getSystemValue('archive', false)['selfsigned'];
-			$token = $this->config->getSystemValue('archive', false)['token'];
+			$secret = $this->config->getSystemValue('archive', false)['secret'];
 			
 			$options = [
 				'headers' => [
-					'x-access-token' => $token
+					'x-access-secret' => $secret
 				],
 				'verify' => !$selfsigned
 			];

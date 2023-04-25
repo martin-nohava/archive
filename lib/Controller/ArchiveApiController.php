@@ -23,8 +23,6 @@ class ArchiveApiController extends ApiController {
 	 */
 	private ?string $userId;
 
-	use Errors;
-
 	public function __construct(IRequest $request,
 								ArchiveApiService $service,
 								?string $userId) {
@@ -56,7 +54,6 @@ class ArchiveApiController extends ApiController {
 	/**
 	 * @NoAdminRequired
 	 *
-	 * @param string $url
 	 * @return DataResponse
 	 * @throws NotPermittedException
 	 * @throws LockedException
@@ -74,7 +71,6 @@ class ArchiveApiController extends ApiController {
 	/**
 	 * @NoAdminRequired
 	 *
-	 * @param string $url
 	 * @return DataResponse
 	 * @throws NotPermittedException
 	 * @throws LockedException
@@ -110,7 +106,6 @@ class ArchiveApiController extends ApiController {
 	/**
 	 * @NoAdminRequired
 	 *
-	 * @param int $id
 	 * @return DataResponse
 	 * @throws NotPermittedException
 	 * @throws LockedException

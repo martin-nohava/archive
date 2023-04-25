@@ -1,4 +1,11 @@
 <template>
+	<!--
+    SPDX-FileCopyrightText: Martin Nohava <martin.nohava@vut.cz>
+    SPDX-License-Identifier: AGPL-3.0-or-later
+
+	Code inspired by Mattermost integration into Nextcloud availble from
+    https://github.com/julien-nc/integration_mattermost by Julien Veyssier 2022
+    -->
 	<div class="archive-modal-container">
 		<NcModal v-if="show"
 			size="normal"
@@ -64,8 +71,10 @@
 							</strong>
 						</span>
 					</span>
+					<!-- TODO: Comment function is not implemented in backend -->
 					<NcTextField :value.sync="comment"
 						:label="commentPlaceholder"
+						:disabled="true"
 						trailing-button-icon="close"
 						:show-trailing-button="comment !== ''"
 						@trailing-button-click="clearComment">
@@ -144,7 +153,7 @@ export default {
 		return {
 			show: false,
 			loading: false,
-			deteteFiles: true,
+			deteteFiles: false,
 			connected: true,
 			comment: '',
 			files: [],
@@ -178,7 +187,7 @@ export default {
 			this.files = []
 			this.fileStates = {}
 			this.comment = ''
-			this.deteteFiles = true
+			this.deteteFiles = false
 			this.connected = true
 		},
 		clearComment() {

@@ -73,9 +73,7 @@ function initModal(files) {
 							size: f.size,
 						}
 					})
-					if (OCA.Archive.archiveConnected) {
-						initModal(filesToArchive)
-					}
+					initModal(filesToArchive)
 				},
 			})
 
@@ -96,9 +94,7 @@ function initModal(files) {
 							size: context.fileInfoModel.attributes.size,
 						},
 					]
-					if (OCA.Archive.archiveConnected) {
-						initModal(filesToArchive)
-					}
+					initModal(filesToArchive)
 				},
 			})
 		},
@@ -201,9 +197,6 @@ OCA.Archive.SubmitFilesModalVue.$on('validate', ({ filesToSubmit, deteteFiles, c
 	OCA.Archive.submittedFileNames = []
 	submitFile(deteteFiles, comment)
 })
-
-//TODO: get Archive state
-OCA.Archive.archiveConnected = true
 
 /* Register custom file plugin */
 document.addEventListener('DOMContentLoaded', () => { 
