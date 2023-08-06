@@ -131,6 +131,9 @@ class ArchiveApiService {
 				],
 				'timeout' => 0,
 				'verify' => !$selfsigned,
+				'nextcloud' => [
+					'allow_local_address' => true,
+				]
 			];
 
 			$response = $this->client->post($url, $options);
@@ -164,7 +167,10 @@ class ArchiveApiService {
 				'headers' => [
 					'x-access-secret' => $secret
 				],
-				'verify' => !$selfsigned
+				'verify' => !$selfsigned,
+				'nextcloud' => [
+					'allow_local_address' => true,
+				]
 			];
 
 			$response = $this->client->get($url, $options);
@@ -205,7 +211,10 @@ class ArchiveApiService {
 						'contents' => $owner,
 					]
 				],
-				'verify' => !$selfsigned
+				'verify' => !$selfsigned,
+				'nextcloud' => [
+					'allow_local_address' => true,
+				]
 			];
 
 			$response = $this->client->get($url, $options);
@@ -246,7 +255,10 @@ class ArchiveApiService {
 						'contents' => $id,
 					]
 				],
-				'verify' => !$selfsigned
+				'verify' => !$selfsigned,
+				'nextcloud' => [
+					'allow_local_address' => true,
+				]
 			];
 
 			$response = $this->client->get($url, $options);
@@ -280,7 +292,10 @@ class ArchiveApiService {
 				'headers' => [
 					'x-access-secret' => $secret
 				],
-				'verify' => !$selfsigned
+				'verify' => !$selfsigned,
+				'nextcloud' => [
+					'allow_local_address' => true,
+				]
 			];
 
 			$response = $this->client->get($url, $options);
