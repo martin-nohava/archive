@@ -75,9 +75,9 @@ class ArchiveApiService {
 		/* Get required info */
 		$userFolder = $this->root->getUserFolder($userId);
 		$files = $userFolder->getById($fileId);
-		$url = $this->config->getSystemValue('archive', '')['url'];
-		$selfsigned = $this->config->getSystemValue('archive', false)['selfsigned'];
-		$secret = $this->config->getSystemValue('archive', '')['secret'];
+		$url = $this->config->getAppValue(Application::APP_ID, 'url', '');
+		$selfsigned = boolval($this->config->getAppValue(Application::APP_ID, 'selfsigned', 'false'));
+		$secret = $this->config->getSystemValue('archive', 'secret', '');
 		
 		/* Post file to remote API */
 		if (count($files) > 0 && $files[0] instanceof File) {

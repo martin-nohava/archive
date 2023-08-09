@@ -34,25 +34,21 @@ class ConfigController extends Controller {
 	}
 
     /**
-	 * Set admin configuration to config.php file
+	 * Set admin configuration
 	 *
 	 * @param array $state
 	 * @return DataResponse
 	 */
 	public function setAdminSettings(array $state): array {
-        /* Array containing application settings */
-        $array = array();
-        /* Populate array with 'key => value' configuration pairs */
 		foreach ($state as $key => $value) {
-            $this->logger->warning('Key: '.$key, ['archive' => Application::APP_ID]);
-			$array[$key] = $value;
+            $this->logger->warning('Setting Archive config with key: ' . $key);
+			try {
+				$this->config->setAppValue(Application::APP_ID, $key, $value);
+			} catch (HintException $e) {
+				return ['error' => $e->getMessage()];
+			}
 		}
-        /* Try to write configuration array to config.php file */
-        try {
-            $this->config->setSystemValue('archive', $array);
-        } catch (HintException $e) {
-            return ['error' => $e->getMessage()];
-        }
+        
 		return ['status' => 'success'];
 	}
 

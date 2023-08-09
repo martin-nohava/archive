@@ -159,7 +159,7 @@ export default ({
 			})
         },
 
-        /* Update local settings in config.php file */
+        /* Update local settings in config */
 		async updateState() {
 			const url = generateUrl('/apps/archive/admin-settings')
 			

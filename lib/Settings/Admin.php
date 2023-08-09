@@ -31,12 +31,12 @@ class Admin implements ISettings {
 	 * @return TemplateResponse
 	 */
 	public function getForm(): TemplateResponse {
-		/* Get values from config.php file, if empty return default values */
-		$adminSettings = $this->config->getSystemValue('archive', [
-			'url' => '',
-			'secret' => '',
-			'selfsigned' => false,
-		]);
+		/* Get values from config */
+		$adminSettings = [
+			'url' => $this->config->getAppValue(Application::APP_ID, 'url', ''),
+			'secret' => boolval($this->config->getAppValue(Application::APP_ID, 'selfsigned', 'false')),
+			'selfsigned' => $this->config->getSystemValue(Application::APP_ID, 'secret', ''),
+		];
 
 		/* Pass values to initial state service. Values than can be consumed by Vue frontend via @nextcloud/initial-state */
 		$this->initialStateService->provideInitialState('admin-settings', $adminSettings);
