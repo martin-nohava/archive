@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Nextcloud - Archive
  *
@@ -25,7 +26,8 @@ use OCP\IL10N;
 use Psr\Log\LoggerInterface;
 use OCP\Http\Client\IClientService;
 
-class ArchiveApiService {
+class ArchiveApiService
+{
 	/**
 	 * @var LoggerInterface
 	 */
@@ -50,11 +52,13 @@ class ArchiveApiService {
 	/**
 	 * Service to comunicate with Archive server API (Endpoint)
 	 */
-	public function __construct (LoggerInterface $logger,
-								IL10N $l10n,
-								IRootFolder $root,
-								IConfig $config,
-								IClientService $clientService) {
+	public function __construct(
+		LoggerInterface $logger,
+		IL10N $l10n,
+		IRootFolder $root,
+		IConfig $config,
+		IClientService $clientService
+	) {
 		$this->logger = $logger;
 		$this->l10n = $l10n;
 		$this->config = $config;
@@ -71,18 +75,19 @@ class ArchiveApiService {
 	 * @throws \OCP\Lock\LockedException
 	 * @throws \OC\User\NoUserException
 	 */
-	public function submitFile(string $userId, int $fileId, string $comment): array {
+	public function submitFile(string $userId, int $fileId, string $comment): array
+	{
 		/* Get required info */
 		$userFolder = $this->root->getUserFolder($userId);
 		$files = $userFolder->getById($fileId);
 		$url = $this->config->getAppValue(Application::APP_ID, 'url', '');
 		$selfsigned = boolval($this->config->getAppValue(Application::APP_ID, 'selfsigned', 'false'));
-		$secret = $this->config->getSystemValue('archive', 'secret', '');
-		
+		$secret = $this->config->getAppValue(Application::APP_ID, 'secret', '');
+
 		/* Post file to remote API */
 		if (count($files) > 0 && $files[0] instanceof File) {
 			$file = $files[0];
-			$url = $url.'/api/submit-file';
+			$url = $url . '/api/submit-file';
 			$sendResult = $this->postFile($url, $selfsigned, $userId, $secret, $file);
 			if (isset($sendResult['error'])) {
 				return $sendResult;
@@ -111,14 +116,15 @@ class ArchiveApiService {
 	 * @return array|mixed|resource|string|string[]
 	 * @throws Exception
 	 */
-	public function postFile(string $url, bool $selfsigned, string $owner, string $secret, $file) {
+	public function postFile(string $url, bool $selfsigned, string $owner, string $secret, $file)
+	{
 		try {
 			$options = [
 				'headers' => [
 					'Transfer-Encoding' => 'chunked',
 					'x-access-secret' => $secret
 				],
-				'multipart' => [ 
+				'multipart' => [
 					[
 						'name'     => 'file',
 						'contents' => $file->fopen('r'),
@@ -146,7 +152,7 @@ class ArchiveApiService {
 				return json_decode($body, true);
 			}
 		} catch (ServerException | ClientException $e) {
-			$this->logger->warning('Failed to submit file: '.$e->getMessage(), ['archive' => Application::APP_ID]);
+			$this->logger->warning('Failed to submit file: ' . $e->getMessage(), ['archive' => Application::APP_ID]);
 			return ['error' => $e->getMessage()];
 		}
 	}
@@ -157,12 +163,13 @@ class ArchiveApiService {
 	 * @return array|mixed|resource|string|string[]
 	 * @throws Exception
 	 */
-	public function connected() {
+	public function connected()
+	{
 		try {
-			$url = $this->config->getSystemValue('archive', '')['url'].'/api/status';
-			$selfsigned = $this->config->getSystemValue('archive', false)['selfsigned'];
-			$secret = $this->config->getSystemValue('archive', false)['secret'];
-			
+			$url = $this->config->getAppValue('archive', 'url', '') . '/api/status';
+			$selfsigned = boolval($this->config->getAppValue(Application::APP_ID, 'selfsigned', 'false'));
+			$secret = $this->config->getAppValue('archive', 'secret', '');
+
 			$options = [
 				'headers' => [
 					'x-access-secret' => $secret
@@ -183,7 +190,7 @@ class ArchiveApiService {
 				return json_decode($body, true);
 			}
 		} catch (ServerException | ClientException $e) {
-			$this->logger->warning('Failed to connect: '.$e->getMessage(), ['archive' => Application::APP_ID]);
+			$this->logger->warning('Failed to connect: ' . $e->getMessage(), ['archive' => Application::APP_ID]);
 			return ['error' => $e->getMessage()];
 		}
 	}
@@ -195,12 +202,13 @@ class ArchiveApiService {
 	 * @return array|mixed|resource|string|string[]
 	 * @throws Exception
 	 */
-	public function listfiles(string $owner) {
+	public function listfiles(string $owner)
+	{
 		try {
-			$url = $this->config->getSystemValue('archive', '')['url'].'/api/list-files';
-			$selfsigned = $this->config->getSystemValue('archive', false)['selfsigned'];
-			$secret = $this->config->getSystemValue('archive', false)['secret'];
-			
+			$url = $this->config->getAppValue('archive', 'url', '') . '/api/list-files';
+			$selfsigned = boolval($this->config->getAppValue(Application::APP_ID, 'selfsigned', 'false'));
+			$secret = $this->config->getAppValue('archive', 'secret', '');
+
 			$options = [
 				'headers' => [
 					'x-access-secret' => $secret
@@ -227,7 +235,7 @@ class ArchiveApiService {
 				return json_decode($body, true);
 			}
 		} catch (ServerException | ClientException $e) {
-			$this->logger->warning('Failed to connect: '.$e->getMessage(), ['archive' => Application::APP_ID]);
+			$this->logger->warning('Failed to connect: ' . $e->getMessage(), ['archive' => Application::APP_ID]);
 			return ['error' => $e->getMessage()];
 		}
 	}
@@ -239,12 +247,13 @@ class ArchiveApiService {
 	 * @return array|mixed|resource|string|string[]
 	 * @throws Exception
 	 */
-	public function validatefile(int $id) {
+	public function validatefile(int $id)
+	{
 		try {
-			$url = $this->config->getSystemValue('archive', '')['url'].'/api/validate-file';
-			$selfsigned = $this->config->getSystemValue('archive', false)['selfsigned'];
-			$secret = $this->config->getSystemValue('archive', false)['secret'];
-			
+			$url = $this->config->getAppValue('archive', 'url', '') . '/api/validate-file';
+			$selfsigned = boolval($this->config->getAppValue(Application::APP_ID, 'selfsigned', 'false'));
+			$secret = $this->config->getAppValue('archive', 'secret', '');
+
 			$options = [
 				'headers' => [
 					'x-access-secret' => $secret
@@ -271,7 +280,7 @@ class ArchiveApiService {
 				return json_decode($body, true);
 			}
 		} catch (ServerException | ClientException $e) {
-			$this->logger->warning('Failed to connect: '.$e->getMessage(), ['archive' => Application::APP_ID]);
+			$this->logger->warning('Failed to connect: ' . $e->getMessage(), ['archive' => Application::APP_ID]);
 			return ['error' => $e->getMessage()];
 		}
 	}
@@ -282,12 +291,13 @@ class ArchiveApiService {
 	 * @return array|mixed|resource|string|string[]
 	 * @throws Exception
 	 */
-	public function validatefiles() {
+	public function validatefiles()
+	{
 		try {
-			$url = $this->config->getSystemValue('archive', '')['url'].'/api/validate-files';
-			$selfsigned = $this->config->getSystemValue('archive', false)['selfsigned'];
-			$secret = $this->config->getSystemValue('archive', false)['secret'];
-			
+			$url = $this->config->getAppValue('archive', 'url', '') . '/api/validate-files';
+			$selfsigned = boolval($this->config->getAppValue(Application::APP_ID, 'selfsigned', 'false'));
+			$secret = $this->config->getAppValue('archive', 'secret', '');
+
 			$options = [
 				'headers' => [
 					'x-access-secret' => $secret
@@ -308,9 +318,8 @@ class ArchiveApiService {
 				return json_decode($body, true);
 			}
 		} catch (ServerException | ClientException $e) {
-			$this->logger->warning('Failed to connect: '.$e->getMessage(), ['archive' => Application::APP_ID]);
+			$this->logger->warning('Failed to connect: ' . $e->getMessage(), ['archive' => Application::APP_ID]);
 			return ['error' => $e->getMessage()];
 		}
 	}
-
 }
