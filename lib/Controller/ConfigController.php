@@ -43,7 +43,12 @@ class ConfigController extends Controller {
 		foreach ($state as $key => $value) {
             $this->logger->warning('Setting Archive config with key: ' . $key);
 			try {
-				$this->config->setAppValue(Application::APP_ID, $key, $value);
+				if (is_bool($value)) {
+					/* If value is a bool convert it to 0 or 1 */
+					$this->config->setAppValue(Application::APP_ID, $key, (int)$value);
+				} else {
+					$this->config->setAppValue(Application::APP_ID, $key, $value);
+				}
 			} catch (HintException $e) {
 				return ['error' => $e->getMessage()];
 			}

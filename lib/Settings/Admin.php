@@ -34,8 +34,8 @@ class Admin implements ISettings {
 		/* Get values from config */
 		$adminSettings = [
 			'url' => $this->config->getAppValue(Application::APP_ID, 'url', ''),
-			'secret' => boolval($this->config->getAppValue(Application::APP_ID, 'selfsigned', 'false')),
-			'selfsigned' => $this->config->getSystemValue(Application::APP_ID, 'secret', ''),
+			'secret' => $this->config->getAppValue(Application::APP_ID, 'secret', ''),
+			'selfsigned' => boolval($this->config->getAppValue(Application::APP_ID, 'selfsigned', 0)), // String needs to be converted to bool
 		];
 
 		/* Pass values to initial state service. Values than can be consumed by Vue frontend via @nextcloud/initial-state */
