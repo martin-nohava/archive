@@ -106,18 +106,6 @@ function initModal(files) {
 function submitFile(deteteFiles, comment) {
     /* Loop over filesToSubmit until array is empty */
 	const file = OCA.Archive.filesToSubmit.shift()
-	/* Skip directories */
-	if (file.type === 'dir') {
-		/* If all files to archive were processed */
-		if (OCA.Archive.filesToSubmit.length === 0) {
-			/* Emmit notification and close modal */
-			submissionSuccess()
-		} else {
-			/* Call this function again */
-			submitFile(deteteFiles, comment)
-		}
-		return
-	}
 	/* Pass ID of file which is being processed to modal */
 	OCA.Archive.SubmitFilesModalVue.fileStarted(file.id)
 	const req = {
