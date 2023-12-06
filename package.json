@@ -27,7 +27,7 @@
     "serve": "^14.2.0",
     "vue": "^2.7.0",
     "vue-material-design-icons": "^5.2.0",
-    "webpack": "^5.75.0"
+    "webpack": "^5.89.0"
   },
   "browserslist": [
     "extends @nextcloud/browserslist-config"
