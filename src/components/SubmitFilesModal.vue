@@ -81,11 +81,6 @@
 					</NcTextField>
 					
 				</div>
-				<span v-if="warnAboutSendingDirectories">
-					<NcNoteCard type="warning">
-                		<p>{{ t('archive', 'Folders will be skipped. Folders can only be archived in compressed form (e.g. .zip).') }}</p>
-            		</NcNoteCard>
-				</span>
 				<div class="archive-footer">
 					<div class="spacer" />
 					<div class="warning-container" v-if="!connected">
@@ -163,17 +158,9 @@ export default {
 		}
 	},
 	computed: {
-		warnAboutSendingDirectories() {
-			/* If file with type of 'dir found in files return true' */
-			return this.files.findIndex((f) => f.type === 'dir') !== -1
-		},
-		onlyDirectories() {
-			/* Only directories are selected */
-			return this.files.filter((f) => f.type !== 'dir').length === 0
-		},
 		optionsValid() {
-			/* Valid if files are not only directories and at least one file is selected and loading is off and server is reachable */
-			return !this.onlyDirectories && this.files.length > 0 && !this.loading && this.connected
+			/* Valid if at least one file is selected and loading is off and server is reachable */
+			return this.files.length > 0 && !this.loading && this.connected
 		},
 	},
 	watch: {
