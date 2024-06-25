@@ -104,18 +104,19 @@ class ArchiveApiService
 				return $sendResult;
 			}
 
-			if (isset($sendResult['status'])) {
-				$status = $sendResult['status'];
+			// if (isset($sendResult['status'])) {
+			// 	$status = $sendResult['status'];
 
-				return [
-					'remote_file_id' => $status,
-				];
-			} else {
-				return ['error' => 'File upload error'];
-			}
+			// 	return [
+			// 		'remote_file_id' => $status,
+			// 	];
+			// } else {
+			// 	return ['error' => 'File upload error'];
+			// }
 
 			/* Delete tmp file */
 			unlink($destination);
+			return [];
 		}
 
 		/* Post file to remote API */
@@ -127,15 +128,16 @@ class ArchiveApiService
 				return $sendResult;
 			}
 
-			if (isset($sendResult['status'])) {
-				$status = $sendResult['status'];
+			// if (isset($sendResult['status'])) {
+			// 	$status = $sendResult['status'];
 
-				return [
-					'remote_file_id' => $status,
-				];
-			} else {
-				return ['error' => 'File upload error'];
-			}
+			// 	return [
+			// 		'remote_file_id' => $status,
+			// 	];
+			// } else {
+			// 	return ['error' => 'File upload error'];
+			// }
+			return [];
 		} else {
 			return ['error' => 'File not found'];
 		}
