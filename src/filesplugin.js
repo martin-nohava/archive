@@ -103,7 +103,7 @@ function initModal(files) {
 })()
 
 /* Send file ID to application PHP backend */
-function submitFile(deteteFiles, comment) {
+function submitFile(deleteFiles, comment) {
     /* Loop over filesToSubmit until array is empty */
 	const file = OCA.Archive.filesToSubmit.shift()
 	/* Pass ID of file which is being processed to modal */
@@ -122,7 +122,7 @@ function submitFile(deteteFiles, comment) {
 		OCA.Archive.SubmitFilesModalVue.fileFinished(file.id)
 
 		/* Remove file after archivation if requested */
-		if (deteteFiles === true) {
+		if (deleteFiles === true) {
 			if (DEBUG) console.debug('[Archive] remmoving file from list')
 			OCA.Files.App.fileList.do_delete(file.name)
 		}
@@ -132,7 +132,7 @@ function submitFile(deteteFiles, comment) {
 			submissionSuccess()
 		} else {
 			/* Call this function again */
-			submitFile(deteteFiles, comment)
+			submitFile(deleteFiles, comment)
 		}
 	}).catch((error) => {
 		console.error(error)
@@ -177,13 +177,13 @@ OCA.Archive.SubmitFilesModalVue = new View().$mount(modalElement)
 OCA.Archive.SubmitFilesModalVue.$on('closed', () => {
 	if (DEBUG) console.debug('[Archive] modal closed')
 })
-OCA.Archive.SubmitFilesModalVue.$on('validate', ({ filesToSubmit, deteteFiles, comment }) => {
+OCA.Archive.SubmitFilesModalVue.$on('validate', ({ filesToSubmit, deleteFiles, comment }) => {
 	OCA.Archive.filesToSubmit = filesToSubmit
 
-	if (DEBUG) console.debug('[Archive] deteteFiles: ' + deteteFiles)
+	if (DEBUG) console.debug('[Archive] deleteFiles: ' + deleteFiles)
 	if (DEBUG) console.debug('[Archive] comment: ' + comment)
 	OCA.Archive.submittedFileNames = []
-	submitFile(deteteFiles, comment)
+	submitFile(deleteFiles, comment)
 })
 
 /* Register custom file plugin */

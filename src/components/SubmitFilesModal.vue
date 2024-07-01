@@ -62,7 +62,7 @@
 							</strong>
 						</span>
 					</span>
-					<NcCheckboxRadioSwitch :checked.sync="deteteFiles" :disabled="loading">{{ n('archive', 'Delete file after archivation', 'Delete files after archivation', files.length) }}</NcCheckboxRadioSwitch>
+					<NcCheckboxRadioSwitch :checked.sync="deleteFiles" :disabled="loading">{{ n('archive', 'Delete file after archivation', 'Delete files after archivation', files.length) }}</NcCheckboxRadioSwitch>
 					<span class="field-label">
 						<CommentIcon />
 						<span>
@@ -148,7 +148,7 @@ export default {
 		return {
 			show: false,
 			loading: false,
-			deteteFiles: false,
+			deleteFiles: false,
 			connected: true,
 			comment: '',
 			files: [],
@@ -174,7 +174,7 @@ export default {
 			this.files = []
 			this.fileStates = {}
 			this.comment = ''
-			this.deteteFiles = false
+			this.deleteFiles = false
 			this.connected = true
 		},
 		clearComment() {
@@ -208,7 +208,7 @@ export default {
 			this.loading = true
 			this.$emit('validate', {
 				filesToSubmit: [...this.files],
-				deteteFiles: this.deteteFiles,
+				deleteFiles: this.deleteFiles,
 				comment: this.comment
 			})
 		},
