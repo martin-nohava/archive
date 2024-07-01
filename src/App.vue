@@ -66,14 +66,14 @@
 								{{ t('archive', 'Archived at:') }} {{file.time_of_first_ts}} | {{ t('archive', 'Valid until:') }} {{file.expiration}}
 							</template>
 							<template #actions>
-								<NcActionButton 
+								<!-- <NcActionButton 
 								:disabled="downloading">
 									<template #icon>
 										<DownloadIcon v-if="!downloading" :size="20" />
 										<NcLoadingIcon v-else :size="20" />
 									</template>
 									{{ t('archive', 'Download package') }}
-								</NcActionButton>
+								</NcActionButton> -->
 								<NcActionButton
 								:disabled="validating"
 								@click="validateFile(file.id)">
