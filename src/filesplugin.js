@@ -14,9 +14,10 @@
 import SubmitFilesModal from './components/SubmitFilesModal.vue'
 
 import axios from '@nextcloud/axios'
+import { showError, showSuccess } from '@nextcloud/dialogs'
+import { registerFileAction } from '@nextcloud/files'
+import { translatePlural as n, translate as t } from '@nextcloud/l10n'
 import { generateUrl } from '@nextcloud/router'
-import { showSuccess, showError } from '@nextcloud/dialogs'
-import { translate as t, translatePlural as n } from '@nextcloud/l10n'
 
 import Vue from 'vue'
 import './bootstrap.js'
@@ -24,7 +25,7 @@ import './bootstrap.js'
 const DEBUG = true
 
 function initModal(files) {
-    /* Global varialbe holding selected files */
+	/* Global varialbe holding selected files */
 	OCA.Archive.filesToSubmit = files
 	const modal = OCA.Archive.SubmitFilesModalVue
 	modal.setFiles([...files])
@@ -32,7 +33,7 @@ function initModal(files) {
 }
 
 /* FilesPlugin */
-(function() {
+(function () {
 	if (!OCA.Archive) {
 		/**
 		 * @namespace
@@ -46,65 +47,41 @@ function initModal(files) {
 	 * @namespace
 	 */
 	OCA.Archive.FilesPlugin = {
-		ignoreLists: [
-			'trashbin',
-			'files.public',
-		],
-
-		attach(fileList) {
-			if (DEBUG) console.debug('[Archive] begin of attach')
-			/* Check if files are ignored */
-			if (this.ignoreLists.indexOf(fileList.id) >= 0) {
-				return
-			}
-
-			/* Register new action to muli-select file menu */
-			fileList.registerMultiSelectFileAction({
-				name: 'archiveArchiveMulti',
-				displayName: t('archive', 'Archive files'),
-				iconClass: 'icon-category-app-bundles',
-				order: -2,
-				action: (selectedFiles) => {
-					const filesToArchive = selectedFiles.map((f) => {
-						return {
-							id: f.id,
-							name: f.name,
-							type: f.type,
-							size: f.size,
-						}
-					})
-					initModal(filesToArchive)
+		id: "archiveArchive",
+		displayName: (files, view) => 'Archive',
+		iconSvgInline: (files, view) => '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" version="1.1" height="16"><path fill="#fff" d="m1 2v2h14v-2zm1 3v9h12v-9zm3.5 2h5v1h-5z"/></svg>',
+		enabled: (files, view) => true,
+		order: -101,
+		exec: async (file, view, dir) => {
+			const filesToArchive = [
+				{
+					id: file.fileid,
+					name: file.basename,
+					type: file.type,
+					size: file.size,
 				},
-			})
-
-			/* Register new action to file menu */
-			fileList.fileActions.registerAction({
-				name: 'archiveArchiveSingle',
-				displayName: t('archive', 'Archive file'),
-				iconClass: 'icon-category-app-bundles',
-				mime: 'all',
-				order: -100,
-				permissions: OC.PERMISSION_READ,
-				actionHandler: (fileName, context) => {
-					const filesToArchive = [
-						{
-							id: context.fileInfoModel.attributes.id,
-							name: context.fileInfoModel.attributes.name,
-							type: context.fileInfoModel.attributes.type,
-							size: context.fileInfoModel.attributes.size,
-						},
-					]
-					initModal(filesToArchive)
-				},
-			})
+			]
+			initModal(filesToArchive)
+			return Promise.resolve(null);
 		},
+		execBatch: async (files, view, dir) => {
+			const filesToArchive = files.map((f) => {
+				return {
+					id: f.fileid,
+					name: f.basename,
+					type: f.type,
+					size: f.size,
+				}
+			})
+			initModal(filesToArchive)
+			return Promise.resolve(null);
+		}
 	}
-
 })()
 
 /* Send file ID to application PHP backend */
 function submitFile(deleteFiles, comment) {
-    /* Loop over filesToSubmit until array is empty */
+	/* Loop over filesToSubmit until array is empty */
 	const file = OCA.Archive.filesToSubmit.shift()
 	/* Pass ID of file which is being processed to modal */
 	OCA.Archive.SubmitFilesModalVue.fileStarted(file.id)
@@ -126,7 +103,7 @@ function submitFile(deleteFiles, comment) {
 			if (DEBUG) console.debug('[Archive] remmoving file from list')
 			OCA.Files.App.fileList.do_delete(file.name)
 		}
-        /* If all files to archive were processed */
+		/* If all files to archive were processed */
 		if (OCA.Archive.filesToSubmit.length === 0) {
 			/* Emmit notification and close modal */
 			submissionSuccess()
@@ -152,15 +129,15 @@ function submissionSuccess() {
 	const count = OCA.Archive.submittedFileNames.length
 	/* Name of the last submitted file */
 	const lastFileName = count === 0 ? t('archive', 'Nothing') : OCA.Archive.submittedFileNames[count - 1]
-	    /* Show notification */	
-		showSuccess(n('archive', 'File {fileName} was archived', '{count} files were archived', count, { fileName: lastFileName, count }))
+	/* Show notification */
+	showSuccess(n('archive', 'File {fileName} was archived', '{count} files were archived', count, { fileName: lastFileName, count }))
 
-		/* Clean arrays */
-		OCA.Archive.filesToSubmit = []
-		OCA.Archive.submittedFileNames = []
-		
-		/* Close modal with sucess */
-		OCA.Archive.SubmitFilesModalVue.success()
+	/* Clean arrays */
+	OCA.Archive.filesToSubmit = []
+	OCA.Archive.submittedFileNames = []
+
+	/* Close modal with sucess */
+	OCA.Archive.SubmitFilesModalVue.success()
 }
 
 /* Prepare mount point for modal */
@@ -187,7 +164,7 @@ OCA.Archive.SubmitFilesModalVue.$on('validate', ({ filesToSubmit, deleteFiles, c
 })
 
 /* Register custom file plugin */
-document.addEventListener('DOMContentLoaded', () => { 
+document.addEventListener('DOMContentLoaded', () => {
 	if (DEBUG) console.debug('[Archive] before register files plugin')
-	OC.Plugins.register('OCA.Files.FileList', OCA.Archive.FilesPlugin)
+	registerFileAction(OCA.Archive.FilesPlugin)
 })
